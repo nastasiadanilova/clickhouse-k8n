@@ -1,6 +1,6 @@
 # ClickHouse Single-Node · Helm-чарт
 
-Лёгкий Helm-чарт для развёртывания одного узла ClickHouse в Kubernetes.
+Helm-чарт для развёртывания одного узла ClickHouse в Kubernetes
 
 ## Содержание
 - [Возможности](#возможности)
