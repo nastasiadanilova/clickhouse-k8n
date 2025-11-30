@@ -1,39 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "clickhouse.fullname" . }}
+  name: {{ include "clickhouse.fullname" . }}   # имя: <release-name>-clickhouse
 spec:
-  replicas: 1
+  replicas: 1                                   # single-node: всегда одна реплика
   selector:
     matchLabels:
-      app: {{ include "clickhouse.fullname" . }}
+      app: {{ include "clickhouse.fullname" . }}  # обязателен для связи с подами
   template:
     metadata:
       labels:
-        app: {{ include "clickhouse.fullname" . }}
+        app: {{ include "clickhouse.fullname" . }} # тот же лейбл, что и в selector + для service
     spec:
-      securityContext:
-        runAsUser: 101
-        runAsGroup: 101
-        fsGroup: 101
+      securityContext:                          
+        runAsUser: 101                          # uid 
+        runAsGroup: 101                         # gid 
+        fsGroup: 101                            # смена владельца 
       containers:
       - name: clickhouse
-        image: clickhouse/clickhouse-server:{{ .Values.imageTag }}
-        ports:
-        - containerPort: 8123
-        - containerPort: 9000
+        image: clickhouse/clickhouse-server:{{ .Values.imageTag }}  # версия задаётся в values.yaml
+        ports:                                        
+        - containerPort: 8123                         # http-интерфейс
+        - containerPort: 9000                         # нативный tcp-порт
         volumeMounts:
-        # Конфиг кладём в config.d — ClickHouse автоматически его подхватит
-        - name: config
+        - name: config                                
           mountPath: /etc/clickhouse-server/config.d/99-custom.xml
           subPath: config.xml
-        # users.xml кладём в users.d — ClickHouse автоматически его подхватит
-        - name: users
+        - name: users                                 # пользователи и sha256-пароли
           mountPath: /etc/clickhouse-server/users.d/99-custom-users.xml
           subPath: users.xml
-        - name: data
+        - name: data                                  
           mountPath: /var/lib/clickhouse/
-        resources:
+        resources:                                    
           requests:
             memory: "1Gi"
             cpu: "500m"
@@ -43,9 +41,9 @@ spec:
       volumes:
       - name: config
         configMap:
-          name: {{ include "clickhouse.fullname" . }}-config
+          name: {{ include "clickhouse.fullname" . }}-config   # ConfigMap из templates/configmap-config.xml
       - name: users
         secret:
-          secretName: {{ include "clickhouse.fullname" . }}-users
+          secretName: {{ include "clickhouse.fullname" . }}-users  
       - name: data
-        emptyDir: {}
+        emptyDir: {}                                # по умолчанию emptyDir; при storage.type: "pvc" заменяется на PVC
