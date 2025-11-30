@@ -1,0 +1,16 @@
+{{- if eq .Values.storage.type "pvc" }}
+# создаём pvc только если в values.yaml указано storage.type: "pvc"
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  
+  name: data-{{ include "clickhouse.fullname" . }}
+spec:
+  # rwo тк single-node
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      # размер берётся из values.yaml 
+      # если не указан, то 20Gi
+      storage: {{ .Values.storage.size | default "20Gi" }}
+{{- end }}

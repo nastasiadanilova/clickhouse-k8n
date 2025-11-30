@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "clickhouse.fullname" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "clickhouse.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "clickhouse.fullname" . }}
+    spec:
+      securityContext:
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+      containers:
+      - name: clickhouse
+        image: clickhouse/clickhouse-server:{{ .Values.imageTag }}
+        ports:
+        - containerPort: 8123
+        - containerPort: 9000
+        volumeMounts:
+        # Конфиг кладём в config.d — ClickHouse автоматически его подхватит
+        - name: config
+          mountPath: /etc/clickhouse-server/config.d/99-custom.xml
+          subPath: config.xml
+        # users.xml кладём в users.d — ClickHouse автоматически его подхватит
+        - name: users
+          mountPath: /etc/clickhouse-server/users.d/99-custom-users.xml
+          subPath: users.xml
+        - name: data
+          mountPath: /var/lib/clickhouse/
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "4"
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "clickhouse.fullname" . }}-config
+      - name: users
+        secret:
+          secretName: {{ include "clickhouse.fullname" . }}-users
+      - name: data
+        emptyDir: {}

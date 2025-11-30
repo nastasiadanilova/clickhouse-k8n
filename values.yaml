@@ -1,0 +1,19 @@
+# параметры для изменений (после изменений сделать helm upgrade)
+
+# версия образа clickhouse
+imageTag: 25.11-alpine
+
+# тип хранилища
+# emptyDir: для тестов и kind (данные пропадают при перезапуске пода)
+# pvc: для реального использования (нужно указать size)
+storage:
+  type: "emptyDir"        
+  # size:            # раскомментируйте и обязательно укажите размер, если type pvc
+
+# пользователи с паролями
+users:
+  - name: admin
+    password: SuperSecret123
+  - name: readonly
+    password: readonly456
+
